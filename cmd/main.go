@@ -1,8 +1,15 @@
 package main
 
-//TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
+import (
+	"Advertising/configs"
+	"fmt"
+	"log"
+)
 
 func main() {
-
+	cfg, err := configs.LoadConfig("configs")
+	if err != nil {
+		log.Fatal("error loading config:", err)
+	}
+	fmt.Printf("Server is running on %s:%d\n", cfg.Server.Host, cfg.Server.Port)
 }
