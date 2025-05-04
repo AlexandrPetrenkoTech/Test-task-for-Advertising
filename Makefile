@@ -1,37 +1,50 @@
-.PHONY: build run lint test migrate-up migrate-down docker-up docker-down swagger
+# Makefile for Advertising Project
 
-# Билд бинарника
-build:
-	go build -o bin/app ./cmd/main.go
+# Name of the final binary
+BINARY_NAME=advertising
 
-# Запуск приложения
-run:
-	go run ./cmd/main.go
+# Default target
+.PHONY: all
+all: build
 
-# Линтер
+# Run the linter
+.PHONY: lint
 lint:
-	golangci-lint run ./...
+	@echo "Running golangci-lint..."
+	golangci-lint run
 
-# Юнит-тесты
+# Build the Go binary
+.PHONY: build
+build:
+	@echo "Building Go project..."
+	CGO_ENABLED=0 GOOS=linux go build -o $(BINARY_NAME) ./cmd
+
+# Run the application locally
+.PHONY: run
+run:
+	@echo "Running app..."
+	go run ./cmd
+
+# Run unit tests
+.PHONY: test
 test:
-	go test -v ./...
+	@echo "Running unit tests..."
+	go test ./... -v
 
-# Миграции вверх (создание таблиц)
-migrate-up:
-	migrate -path migrations -database $$DATABASE_URL up
+# Build Docker image
+.PHONY: docker-build
+docker-build:
+	@echo "Building Docker image..."
+	docker build -t advertising-app .
 
-# Миграции вниз (откат)
-migrate-down:
-	migrate -path migrations -database $$DATABASE_URL down
+# Run Docker container
+.PHONY: docker-run
+docker-run:
+	@echo "Running Docker container..."
+	docker run -p 8080:8080 advertising-app
 
-# Запуск docker-compose
-docker-up:
-	docker-compose up -d
-
-# Остановка docker-compose
-docker-down:
-	docker-compose down
-
-# Генерация Swagger-документации
-swagger:
-	swag init -g cmd/main.go -o ./docs
+# Clean up built files
+.PHONY: clean
+clean:
+	@echo "Cleaning up..."
+	rm -f $(BINARY_NAME)
