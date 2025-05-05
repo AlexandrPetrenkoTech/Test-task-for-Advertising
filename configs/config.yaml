@@ -1,6 +1,6 @@
 server:
   host: "localhost"
-  port: "8080"
+  port: 8080
 
 db:
   host: "localhost"
@@ -8,4 +8,3 @@ db:
   user: "postgres"
   password: "WhyAreYouRunning"
   name: "adverts"
-  

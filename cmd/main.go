@@ -9,26 +9,25 @@ import (
 )
 
 func main() {
-	// Loading configuration
+	// Load environment variables first
+	configs.LoadEnvConfig()
+
+	// Load the main application configuration from config.yaml
 	cfg, err := configs.LoadConfig("configs")
 	if err != nil {
 		log.Fatal("error loading config:", err)
 	}
-	// Initializing the database and other services
-	//dbRepo := repository.NewDBRepository(cfg)
-	//advertService := service.NewAdvertService(dbRepo)
-	//advertHandler := handler.NewAdvertHandler(advertService)
 
-	//Initializing Echo
+	// Initialize Echo
 	e := echo.New()
 
-	//Setting up routes
-	//e.POST("/api/adverts", advertHandler.CreateAdvert)
-	//e.GET("api/advets/:id", advertHandler.GetAdvertByID)
-	//e.GET("/api/adverts", advertHandler.GetAdverts)
+	// Set up routes
+	// e.POST("/api/adverts", advertHandler.CreateAdvert)
+	// e.GET("api/advets/:id", advertHandler.GetAdvertByID)
+	// e.GET("/api/adverts", advertHandler.GetAdverts)
 
-	//Starting the server
-	log.Printf("Starting server on port %s...", cfg.Server.Port)
+	// Start the server
+	log.Printf("Starting server on port %d...", cfg.Server.Port)
 	if err := e.Start(fmt.Sprintf(":%d", cfg.Server.Port)); err != nil {
 		log.Fatal("Error starting server: %v", err)
 		os.Exit(1)
