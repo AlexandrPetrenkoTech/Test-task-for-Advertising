@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # Service with Go application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"  # Proxy to port 8080 for the application
+    environment:
+      - DATABASE_URL=postgres://user:password@db:5432/advertising?sslmode=disable  # Environment variable for database connection
+    volumes:
+      - ./configs:/root/configs
+    depends_on:
+      - db  # Wait for the database to start
+
+  # Service for PostgreSQL
+  db:
+    image: postgres:13  # Use official PostgreSQL image
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist database data
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: advertising
+    ports:
+      - "5432:5432"  # Proxy to port 5432 for database interaction
+
+volumes:
+  postgres_data:  # Volume description for storing database data
