@@ -1,30 +1,26 @@
-# ---------- Build Stage ----------
-FROM golang:1.24 AS builder
+# Use the official Golang image as the base
+FROM golang:1.24
 
-# Set working directory inside the container
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy dependency files and download modules first
+# Copy Go modules manifests
 COPY go.mod go.sum ./
+
+# Download dependencies
 RUN go mod download
 
-# Copy the rest of the source code
+# Copy the source code
 COPY . .
 
-# Build the binary with a specific name
-RUN CGO_ENABLED=0 GOOS=linux go build -o advertising ./cmd
+# Copy .env file into the container
+COPY .env /app/.env
 
-# ---------- Run Stage ----------
-FROM alpine:latest
+# Build the Go application
+RUN go build -o main ./cmd/main.go
 
-# Set working directory in the final container
-WORKDIR /root/
-
-# Copy the compiled binary
-COPY --from=builder /app/advertising .
-
-# Expose the application's port
+# Expose the port the app runs on
 EXPOSE 8080
 
-# Start the application
-CMD ["./advertising"]
+# Command to run the executable
+CMD ["./main"]
