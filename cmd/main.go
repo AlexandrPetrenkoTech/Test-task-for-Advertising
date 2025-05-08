@@ -2,6 +2,7 @@ package main
 
 import (
 	"Advertising/configs"
+	"Advertising/pkg/repository"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"log"
@@ -9,27 +10,35 @@ import (
 )
 
 func main() {
-	// Load environment variables first
+	// Load environment variables from .env (if any)
 	configs.LoadEnvConfig()
 
-	// Load the main application configuration from config.yaml
+	// Load configuration from config.yaml
 	cfg, err := configs.LoadConfig("configs")
 	if err != nil {
-		log.Fatal("error loading config:", err)
+		log.Fatal("failed to load config: ", err)
 	}
 
-	// Initialize Echo
+	// Initialize DB connection
+	db, err := repository.NewPostgresDB(cfg)
+	if err != nil {
+		log.Fatal("failed to connect to database: ", err)
+	}
+	defer db.Close() // Ensure connection is closed on shutdown
+
+	// Initialize Echo web server
 	e := echo.New()
 
-	// Set up routes
+	// Setup routes here...
 	// e.POST("/api/adverts", advertHandler.CreateAdvert)
-	// e.GET("api/advets/:id", advertHandler.GetAdvertByID)
+	// e.GET("/api/adverts/:id", advertHandler.GetAdvertByID)
 	// e.GET("/api/adverts", advertHandler.GetAdverts)
 
-	// Start the server
-	log.Printf("Starting server on port %d...", cfg.Server.Port)
-	if err := e.Start(fmt.Sprintf(":%d", cfg.Server.Port)); err != nil {
-		log.Fatal("Error starting server: %v", err)
+	// Start HTTP server
+	address := fmt.Sprintf(":%d", cfg.Server.Port)
+	log.Printf("Starting server on %s...", address)
+	if err := e.Start(address); err != nil {
+		log.Fatalf("error starting server: %v", err)
 		os.Exit(1)
 	}
 }
