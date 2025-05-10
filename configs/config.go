@@ -16,29 +16,40 @@ type Config struct {
 	}
 }
 
+// LoadConfig reads config.yaml and overrides with ENV
 func LoadConfig(path string) (*Config, error) {
-	// Set up Viper to read config.yaml
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(path)
 
-	// Load configuration from YAML file
-	var cfg Config
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, err
 	}
+	viper.AutomaticEnv()
 
-	// Unmarshal the YAML configuration into the Config struct
+	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, err
 	}
 
-	// Override values with environment variables from .env if present
+	// Override with environment variables
 	if viper.IsSet("PORT") {
 		cfg.Server.Port = viper.GetInt("PORT")
 	}
-	if viper.IsSet("DATABASE_URL") {
-		cfg.DB.Host = viper.GetString("DATABASE_URL")
+	if viper.IsSet("DB_HOST") {
+		cfg.DB.Host = viper.GetString("DB_HOST")
+	}
+	if viper.IsSet("DB_PORT") {
+		cfg.DB.Port = viper.GetInt("DB_PORT")
+	}
+	if viper.IsSet("DB_USER") {
+		cfg.DB.User = viper.GetString("DB_USER")
+	}
+	if viper.IsSet("DB_PASSWORD") {
+		cfg.DB.Password = viper.GetString("DB_PASSWORD")
+	}
+	if viper.IsSet("DB_NAME") {
+		cfg.DB.Name = viper.GetString("DB_NAME")
 	}
 
 	return &cfg, nil

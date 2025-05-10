@@ -4,35 +4,31 @@ import (
 	"Advertising/configs"
 	"Advertising/pkg/repository"
 	"fmt"
-	"github.com/labstack/echo/v4"
 	"log"
 	"os"
+
+	"github.com/labstack/echo/v4"
 )
 
 func main() {
-	// Load environment variables from .env (if any)
+	// Load environment variables
 	configs.LoadEnvConfig()
 
-	// Load configuration from config.yaml
+	// Load YAML config and apply overrides
 	cfg, err := configs.LoadConfig("configs")
 	if err != nil {
-		log.Fatal("failed to load config: ", err)
+		log.Fatal("failed to load config:", err)
 	}
 
-	// Initialize DB connection
+	// Initialize database connection
 	db, err := repository.NewPostgresDB(cfg)
 	if err != nil {
-		log.Fatal("failed to connect to database: ", err)
+		log.Fatal("failed to connect to database:", err)
 	}
-	defer db.Close() // Ensure connection is closed on shutdown
+	defer db.Close()
 
-	// Initialize Echo web server
+	// Initialize web server
 	e := echo.New()
-
-	// Setup routes here...
-	// e.POST("/api/adverts", advertHandler.CreateAdvert)
-	// e.GET("/api/adverts/:id", advertHandler.GetAdvertByID)
-	// e.GET("/api/adverts", advertHandler.GetAdverts)
 
 	// Start HTTP server
 	address := fmt.Sprintf(":%d", cfg.Server.Port)

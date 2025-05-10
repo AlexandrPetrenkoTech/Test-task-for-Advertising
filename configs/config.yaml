@@ -1,10 +1,10 @@
 server:
-  host: "localhost"
+  host: "0.0.0.0"
   port: 8080
 
 db:
-  host: "localhost"
+  host: "db"
   port: 5432
-  user: "postgres"
-  password: "WhyAreYouRunning"
-  name: "adverts"
+  user: "user"
+  password: "password"
+  name: "advertising"
