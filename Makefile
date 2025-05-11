@@ -43,6 +43,19 @@ docker-run:
 	@echo "Running Docker container..."
 	docker run -p 8080:8080 advertising-app
 
+# Apply database migrations up
+.PHONY: migrate-up
+migrate-up:
+	@echo "Applying DB migrations (up)..."
+	# Ensure DATABASE_URL is set, e.g. export DATABASE_URL=postgres://user:password@db:5432/advertising?sslmode=disable
+	migrate -path migrations -database "$(DATABASE_URL)" up
+
+# Revert database migrations (down)
+.PHONY: migrate-down
+migrate-down:
+	@echo "Reverting DB migrations (down)..."
+	migrate -path migrations -database "$(DATABASE_URL)" down
+
 # Clean up built files
 .PHONY: clean
 clean:

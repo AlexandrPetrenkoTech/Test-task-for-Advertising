@@ -1,92 +1,94 @@
-Advertising Service
+# Advertising Service
 
 This project is a REST API for posting and retrieving classified ads, built with Go (Golang) and following Clean Architecture principles.
 
-🚀 Features
+## 🚀 Features
 
-Create new advertisements with title, description, photo URLs, and price.
+- Create new advertisements with title, description, photo URLs, and price.
+- Get ad by ID (basic fields or full info via `fields=true`).
+- List ads with pagination (10 items per page) and sorting by price or creation date (ascending/descending).
+- Configuration via `.env` and `config.yaml` using Viper.
+- Graceful shutdown support.
+- Fully containerized with Docker and Docker Compose.
+- Unit testing and linting support with Makefile.
 
-Get ad by ID (basic fields or full info via fields query parameter).
+## 🗂 Project Structure
 
-List ads with pagination (10 items per page) and sorting by price or creation date (ascending/descending).
+├── cmd             →  `cmd/`             Entry point (main.go)
+├── pkg/            →  `pkg/`             Clean Architecture layers
+│   ├── handler/                      HTTP handlers
+│   ├── service/                      Business logic
+│   ├── repository/                   Database (sqlx)
+│   ├── model/                        Domain models
+│   └── error_message/                Error definitions
+├── configs/        →  `configs/`        Config loaders (.env + YAML)
+├── migrations/     →  `migrations/`     SQL schema migrations
+├── scripts/        →  `scripts/`        Test data SQL
+├── test/           →  `test/`           Test DB init
+├── e2e_test.go     →  `e2e_test.go`     End-to-end tests (goconvey)
+├── Dockerfile      →  `Dockerfile`      Multi-stage build
+├── docker-compose.yml →  `docker-compose.yml`  Compose setup
+├── Makefile        →  `Makefile`        Build, lint, test, docker
+├── .env            →  `.env`            Env vars overrides
+└── README.md       →  `README.md`       This file
 
-Configuration via .env and config.yaml using Viper.
 
-Graceful shutdown support.
+## 🛠 Technologies Used
 
-Fully containerized with Docker and Docker Compose.
+- Go 1.21+
+- Echo
+- PostgreSQL
+- sqlx
+- Viper
+- Testify + mock
+- golangci-lint
+- Docker & Docker Compose
+- Make
+- migrate CLI (github.com/golang-migrate/migrate)
 
-Unit testing and linting support with Makefile.
+## 📦 Getting Started
 
-🗂 Project Structure
+### Example `config.yaml` (in `configs/`)
 
-├── cmd                  # Entry point (main.go)    
-├── pkg                  # Clean Architecture layers    
-│   ├── handler          # HTTP request handlers    
-│   ├── service          # Business logic   
-│   ├── repository       # Database access via sqlx     
-│   ├── model            # Domain models    
-│   └── error_message    # Error definitions        
-├── configs              # Configuration loaders (.env and config.yaml) 
-├── migrations           # SQL schema migrations    
-├── scripts              # SQL test data scripts    
-├── test                 # Test database initialization     
-├── e2e_test.go          # End-to-end test placeholder  
-├── Dockerfile           # Multi-stage Docker build     
-├── docker-compose.yml   # Docker Compose setup (app + db)  
-├── Makefile             # Build, lint, test, and Docker shortcuts  
-├── .env                 # Environment variables (DATABASE_URL, PORT)   
-└── README.md            # Project documentation    
+```yaml
+server:
+  host: "0.0.0.0"
+  port: 8080
 
-🛠 Technologies Used
+db:
+  host: "db"
+  port: 5432
+  user: "user"
+  password: "password"
+  name: "advertising"
+  
+.env
+# PostgreSQL connection (overrides config.yaml)
+DB_HOST=db
+DB_PORT=5432
+POSTGRES_USER=user
+POSTGRES_PASSWORD=password
+POSTGRES_DB=advertising
 
-Go 1.21+
-
-Echo framework
-
-PostgreSQL
-
-sqlx
-
-Viper
-
-Testify and mock
-
-golangci-lint
-
-Docker & Docker Compose
-
-Make
-
-📦 Getting Started
-
-Prerequisites
-
-Docker & Docker Compose
-
-Go 1.21+ (for local builds)
-
-Make
-
-Run with Docker Compose
-
+# HTTP server
+PORT=8080
+Using Docker & Docker Compose
 docker-compose up --build
-
 Your application will be available at http://localhost:8080.
 
-Run Tests and Lint
+Database Migrations
+make migrate-up     # apply DB schema migrations
+make migrate-down   # rollback migrations
 
-make test
-make lint
+Run Tests and Lint
+make test           # runs unit tests
+make e2e-test       # runs end-to-end tests (goconvey)
+make lint           # runs golangci-lint
 
 Build and Run Locally
-
 make build
 ./advertising
-
 🧑‍💻 Author
-
 Alexandr Petrenko
 
-✍️ This project was built as a technical test assignment demonstrating backend development skills, clean code, testing, and containerization.
-
+This project was built as a technical test assignment demonstrating backend development skills, clean code, testing, and containerization.

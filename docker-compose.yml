@@ -5,16 +5,11 @@ services:
     image: postgres:15
     container_name: advertising-db
     restart: always
-    ports:
-      - "5432:5432"
     env_file:
-      - .env
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      - .env  # load DB credentials and name
     volumes:
       - db_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro  # run .up.sql files on first startup
     networks:
       - advertising-net
 
@@ -27,7 +22,7 @@ services:
     depends_on:
       - db
     env_file:
-      - .env
+      - .env  # load application settings (PORT, DB_HOST, etc.)
     ports:
       - "8080:8080"
     networks:
