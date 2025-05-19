@@ -26,6 +26,7 @@ func main() {
 		log.Fatal("failed to connect to database:", err)
 	}
 	defer db.Close()
+	//todo handle error
 
 	// Initialize web server
 	e := echo.New()
