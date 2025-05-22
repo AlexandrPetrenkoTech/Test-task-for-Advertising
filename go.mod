@@ -3,6 +3,7 @@ module Advertising
 go 1.24
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/jmoiron/sqlx v1.4.0 // indirect

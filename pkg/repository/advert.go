@@ -19,9 +19,6 @@ type AdvertRepo interface {
 	UpdateAdvert(ad model.Advert) error
 	// Delete advert by ID (cascade removes photos)
 	DeleteAdvert(id int) error
-	// Helpers to fetch photo URLs
-	GetMainPhotoURL(advertID int) (string, error)
-	GetAllPhotoURLs(advertID int) ([]string, error)
 }
 
 type PostgresAdvertRepo struct {
@@ -80,25 +77,4 @@ func (r *PostgresAdvertRepo) UpdateAdvert(ad model.Advert) error {
 func (r *PostgresAdvertRepo) DeleteAdvert(id int) error {
 	_, err := r.db.Exec(`DELETE FROM adverts WHERE id = $1`, id)
 	return err
-}
-
-func (r *PostgresAdvertRepo) GetMainPhotoURL(advertID int) (string, error) {
-	var url string
-	err := r.db.Get(&url, `
-        SELECT url
-          FROM photos
-         WHERE advert_id = $1
-      ORDER BY position
-         LIMIT 1`, advertID)
-	return url, err
-}
-
-func (r *PostgresAdvertRepo) GetAllPhotoURLs(advertID int) ([]string, error) {
-	var urls []string
-	err := r.db.Select(&urls, `
-        SELECT url
-          FROM photos
-         WHERE advert_id = $1
-      ORDER BY position`, advertID)
-	return urls, err
 }
