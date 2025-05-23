@@ -19,7 +19,7 @@ func TestPostgresAdvertRepo_CreateAdvert(t *testing.T) {
 	sqlxDB := sqlx.NewDb(db, "postgres")
 	repo := NewAdvertRepo(sqlxDB)
 
-	ad := model.Advert{
+	expected := model.Advert{
 		Name:        "Test Ad",
 		Description: "Test Description",
 		Price:       123.45,
@@ -31,10 +31,10 @@ func TestPostgresAdvertRepo_CreateAdvert(t *testing.T) {
          VALUES ($1, $2, $3, $4)
          RETURNING id`,
 	)).
-		WithArgs(ad.Name, ad.Description, ad.Price, ad.CreatedAt).
+		WithArgs(expected.Name, expected.Description, expected.Price, expected.CreatedAt).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(42))
 
-	id, err := repo.CreateAdvert(ad)
+	id, err := repo.CreateAdvert(expected)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 42, id)
