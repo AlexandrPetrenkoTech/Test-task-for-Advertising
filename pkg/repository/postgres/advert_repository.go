@@ -1,4 +1,3 @@
-// pkg/repository/advert_service.go
 package postgres
 
 import (
@@ -14,11 +13,11 @@ type PostgresAdvertRepo struct {
 	db *sqlx.DB
 }
 
-func NewAdvertRepo(db *sqlx.DB) repository.AdvertRepo {
+func NewPostgresAdvertRepo(db *sqlx.DB) repository.AdvertRepo {
 	return &PostgresAdvertRepo{db: db}
 }
 
-func (r *PostgresAdvertRepo) CreateAdvert(ctx context.Context, ad model.Advert) (int, error) {
+func (r *PostgresAdvertRepo) Create(ctx context.Context, ad model.Advert) (int, error) {
 	var id int
 	err := r.db.QueryRowContext(
 		ctx,
@@ -30,7 +29,7 @@ func (r *PostgresAdvertRepo) CreateAdvert(ctx context.Context, ad model.Advert) 
 	return id, err
 }
 
-func (r *PostgresAdvertRepo) ListAdverts(ctx context.Context, limit, offset int, sortField, sortOrder string) ([]model.Advert, error) {
+func (r *PostgresAdvertRepo) List(ctx context.Context, limit, offset int, sortField, sortOrder string) ([]model.Advert, error) {
 	var ads []model.Advert
 	query := fmt.Sprintf(`
         SELECT id, name, description, price, created_at
@@ -43,7 +42,7 @@ func (r *PostgresAdvertRepo) ListAdverts(ctx context.Context, limit, offset int,
 	return ads, nil
 }
 
-func (r *PostgresAdvertRepo) GetAdvertByID(ctx context.Context, id int) (model.Advert, error) {
+func (r *PostgresAdvertRepo) GetByID(ctx context.Context, id int) (model.Advert, error) {
 	var ad model.Advert
 	err := r.db.GetContext(ctx, &ad, `
         SELECT id, name, description, price, created_at
@@ -52,7 +51,7 @@ func (r *PostgresAdvertRepo) GetAdvertByID(ctx context.Context, id int) (model.A
 	return ad, err
 }
 
-func (r *PostgresAdvertRepo) UpdateAdvert(ctx context.Context, ad model.Advert) error {
+func (r *PostgresAdvertRepo) Update(ctx context.Context, ad model.Advert) error {
 	_, err := r.db.ExecContext(
 		ctx,
 		`UPDATE adverts
@@ -65,7 +64,7 @@ func (r *PostgresAdvertRepo) UpdateAdvert(ctx context.Context, ad model.Advert) 
 	return err
 }
 
-func (r *PostgresAdvertRepo) DeleteAdvert(ctx context.Context, id int) error {
+func (r *PostgresAdvertRepo) Delete(ctx context.Context, id int) error {
 	_, err := r.db.ExecContext(ctx, `DELETE FROM adverts WHERE id = $1`, id)
 	return err
 }

@@ -17,7 +17,7 @@ func TestPostgresAdvertRepo_CreateAdvert(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 	sqlxDB := sqlx.NewDb(db, "postgres")
-	repo := NewAdvertRepo(sqlxDB)
+	repo := NewPostgresAdvertRepo(sqlxDB)
 
 	expected := model.Advert{
 		Name:        "Test Ad",
@@ -34,7 +34,7 @@ func TestPostgresAdvertRepo_CreateAdvert(t *testing.T) {
 		WithArgs(expected.Name, expected.Description, expected.Price, expected.CreatedAt).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(42))
 
-	id, err := repo.CreateAdvert(expected)
+	id, err := repo.Create(expected)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 42, id)
@@ -48,7 +48,7 @@ func TestPostgresAdvertRepo_ListAdverts_AllSortOptions(t *testing.T) {
 	defer db.Close()
 	sqlxDB := sqlx.NewDb(db, "postgres")
 
-	repo := NewAdvertRepo(sqlxDB)
+	repo := NewPostgresAdvertRepo(sqlxDB)
 
 	// Common test data
 	ads := []model.Advert{
@@ -102,7 +102,7 @@ func TestPostgresAdvertRepo_ListAdverts_AllSortOptions(t *testing.T) {
 				WillReturnRows(rows)
 
 			// Execute
-			result, err := repo.ListAdverts(limit, offset, tc.field, tc.order)
+			result, err := repo.List(limit, offset, tc.field, tc.order)
 			assert.NoError(t, err)
 			assert.Equal(t, ads, result)
 		})
@@ -117,7 +117,7 @@ func TestPostgresAdvertRepo_GetAdvertById(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 	sqlxDB := sqlx.NewDb(db, "postgres")
-	repo := NewAdvertRepo(sqlxDB)
+	repo := NewPostgresAdvertRepo(sqlxDB)
 
 	expected := model.Advert{
 		ID:          42,
@@ -139,7 +139,7 @@ func TestPostgresAdvertRepo_GetAdvertById(t *testing.T) {
 		WillReturnRows(rows)
 
 	// Execute
-	result, err := repo.GetAdvertByID(expected.ID)
+	result, err := repo.GetByID(expected.ID)
 
 	// Assertions
 	assert.NoError(t, err)
@@ -156,7 +156,7 @@ func TestPostgresAdvertRepo_UpdateAdvert(t *testing.T) {
 	defer db.Close()
 	sqlxDB := sqlx.NewDb(db, "postgres")
 
-	repo := NewAdvertRepo(sqlxDB)
+	repo := NewPostgresAdvertRepo(sqlxDB)
 
 	// Test data
 	updated := model.Advert{
@@ -178,7 +178,7 @@ func TestPostgresAdvertRepo_UpdateAdvert(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, 1)) // 1 row affected
 
 	// Execute
-	err = repo.UpdateAdvert(updated)
+	err = repo.Update(updated)
 
 	// Assertions
 	assert.NoError(t, err)
@@ -192,7 +192,7 @@ func TestPostgresAdvertRepo_DeleteAdvert(t *testing.T) {
 	defer db.Close()
 	sqlxDB := sqlx.NewDb(db, "postgres")
 
-	repo := NewAdvertRepo(sqlxDB)
+	repo := NewPostgresAdvertRepo(sqlxDB)
 
 	// Test data
 	idToDelete := 42
@@ -205,7 +205,7 @@ func TestPostgresAdvertRepo_DeleteAdvert(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, 1)) // 1 row affected
 
 	// Execute
-	err = repo.DeleteAdvert(idToDelete)
+	err = repo.Delete(idToDelete)
 
 	// Assertions
 	assert.NoError(t, err)

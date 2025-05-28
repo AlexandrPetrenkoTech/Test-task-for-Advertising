@@ -13,7 +13,7 @@ func TestPostgresPhotoRepo_GetMainPhotoURL(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 	sqlxDB := sqlx.NewDb(db, "postgres")
-	repo := NewPhotoRepo(sqlxDB)
+	repo := NewPostgresPhotoRepo(sqlxDB)
 
 	expectedURL := "https://example.com/photo1.jpg"
 
@@ -43,7 +43,7 @@ func TestPostgresPhotoRepo_GetAllPhotoURLs(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 	sqlxDB := sqlx.NewDb(db, "postgres")
-	repo := NewPhotoRepo(sqlxDB)
+	repo := NewPostgresPhotoRepo(sqlxDB)
 
 	expectedURLs := []string{
 		"https://example.com/photo1.jpg",

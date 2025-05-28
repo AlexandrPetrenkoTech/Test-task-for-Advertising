@@ -1,6 +1,12 @@
 package repository
 
+import (
+	"Advertising/pkg/model"
+	"context"
+)
+
 type PhotoRepo interface {
-	GetMainPhotoURL(advertID int) (string, error)
-	GetAllPhotoURLs(advertID int) ([]string, error)
+	GetMainPhotoURL(ctx context.Context, advertID int) (string, error)
+	GetAllPhotoURLs(ctx context.Context, advertID int) ([]string, error)
+	Create(ctx context.Context, photo model.Photo) error
 }
