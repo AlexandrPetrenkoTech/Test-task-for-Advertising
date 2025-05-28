@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Initialize database connection
-	db, err := repository.NewPostgresDB(cfg)
+	db, err := repository.NewDb(cfg)
 	if err != nil {
 		log.Fatal("failed to connect to database:", err)
 	}

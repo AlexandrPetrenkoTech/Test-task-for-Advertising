@@ -1,17 +1,15 @@
-package repository
+package postgres
 
-import "github.com/jmoiron/sqlx"
-
-type PhotoRepo interface {
-	GetMainPhotoURL(advertID int) (string, error)
-	GetAllPhotoURLs(advertID int) ([]string, error)
-}
+import (
+	"Advertising/pkg/repository"
+	"github.com/jmoiron/sqlx"
+)
 
 type PostgresPhotoRepo struct {
 	db *sqlx.DB
 }
 
-func NewPhotoRepo(db *sqlx.DB) PhotoRepo {
+func NewPhotoRepo(db *sqlx.DB) repository.PhotoRepo {
 	return &PostgresPhotoRepo{db: db}
 }
 
