@@ -51,22 +51,50 @@ func (s *advertService) Create(ctx context.Context, input CreateAdvertInput) (in
 	return advertID, nil
 }
 
-func (s *advertService) GetByID(id int, fields bool) (AdvertDetail, error) {
+func (s *advertService) GetByID(ctx context.Context, id int, fields bool) (AdvertDetail, error) {
+	advert, err := s.advertRepo.GetByID(ctx, id)
+	if err != nil {
+		return AdvertDetail{}, err
+	}
+
+	mainURL, err := s.photoRepo.GetMainPhotoURL(ctx, id)
+	if err != nil {
+		return AdvertDetail{}, err
+	}
+
+	summary := AdvertSummary{
+		ID:           advert.ID,
+		Name:         advert.Name,
+		MainPhotoURL: mainURL,
+		Price:        advert.Price,
+	}
+
+	if !fields {
+		return AdvertDetail{AdvertSummary: summary}, nil
+	}
+	photos, err := s.photoRepo.GetAllPhotoURLs(ctx, id)
+	if err != nil {
+		return AdvertDetail{}, err
+	}
+	detail := AdvertDetail{
+		AdvertSummary: summary,
+		Description:   advert.Description,
+		AllPhotosURLs: photos,
+	}
+	return detail, nil
+}
+
+func (s *advertService) List(ctx context.Context, page int, sortField, sortOrder string) ([]AdvertSummary, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s *advertService) List(page int, sortField, sortOrder string) ([]AdvertSummary, error) {
+func (s *advertService) Update(ctx context.Context, id int, input UpdateAdvertInput) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s *advertService) Update(id int, input UpdateAdvertInput) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *advertService) Delete(id int) error {
+func (s *advertService) Delete(ctx context.Context, id int) error {
 	//TODO implement me
 	panic("implement me")
 }

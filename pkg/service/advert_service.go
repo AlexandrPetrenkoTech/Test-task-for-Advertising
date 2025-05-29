@@ -1,5 +1,7 @@
 package service
 
+import "context"
+
 // CreateAdvertInput содержит данные для создания объявления.
 type CreateAdvertInput struct {
 	Name        string
@@ -37,23 +39,23 @@ type AdvertDetail struct {
 // AdvertService описывает бизнес-логику работы с объявлениями.
 type AdvertService interface {
 	// Create создаёт новое объявление и возвращает его ID.
-	Create(input CreateAdvertInput) (int, error)
+	Create(ctx context.Context, input CreateAdvertInput) (int, error)
 
 	// GetByID возвращает объявление по ID.
 	// Если fields == true, включает Description и AllPhotosURLs,
 	// иначе — только AdvertSummary.
-	GetByID(id int, fields bool) (AdvertDetail, error)
+	GetByID(ctx context.Context, id int, fields bool) (AdvertDetail, error)
 
 	// List возвращает постраничный список объявлений.
 	// page — номер страницы (1-based),
 	// sortField — "price" или "date",
 	// sortOrder — "asc" или "desc".
-	List(page int, sortField, sortOrder string) ([]AdvertSummary, error)
+	List(ctx context.Context, page int, sortField, sortOrder string) ([]AdvertSummary, error)
 
 	// Update частично обновляет объявление по ID.
 	// Использует UpdateAdvertInput для определения изменяемых полей.
-	Update(id int, input UpdateAdvertInput) error
+	Update(ctx context.Context, id int, input UpdateAdvertInput) error
 
 	// Delete удаляет объявление по ID.
-	Delete(id int) error
+	Delete(ctx context.Context, id int) error
 }
