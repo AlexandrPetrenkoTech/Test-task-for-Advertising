@@ -85,8 +85,35 @@ func (s *advertService) GetByID(ctx context.Context, id int, fields bool) (Adver
 }
 
 func (s *advertService) List(ctx context.Context, page int, sortField, sortOrder string) ([]AdvertSummary, error) {
-	//TODO implement me
-	panic("implement me")
+	const pageSize = 10
+	offset := (page - 1) * pageSize
+
+	if sortField != "price" && sortField != "date" {
+		return nil, errors.New("invalid sort field")
+	}
+	if sortOrder != "asc" && sortOrder != "desc" {
+		return nil, errors.New("invalid sort field")
+	}
+
+	adverts, err := s.advertRepo.List(ctx, pageSize, offset, sortField, sortOrder)
+	if err != nil {
+		return nil, err
+	}
+
+	summaries := make([]AdvertSummary, 0, len(adverts))
+	for _, adv := range adverts {
+		mainURL, err := s.photoRepo.GetMainPhotoURL(ctx, adv.ID)
+		if err != nil {
+			return nil, err
+		}
+		summaries = append(summaries, AdvertSummary{
+			ID:           adv.ID,
+			Name:         adv.Name,
+			MainPhotoURL: mainURL,
+			Price:        adv.Price,
+		})
+	}
+	return summaries, nil
 }
 
 func (s *advertService) Update(ctx context.Context, id int, input UpdateAdvertInput) error {
