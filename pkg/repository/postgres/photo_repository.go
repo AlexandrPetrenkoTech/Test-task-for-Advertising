@@ -4,6 +4,7 @@ import (
 	"Advertising/pkg/model"
 	"Advertising/pkg/repository"
 	"context"
+	"fmt"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -49,4 +50,17 @@ func (r *PostgresPhotoRepo) GetAllPhotoURLs(ctx context.Context, advertID int) (
       ORDER BY position`, advertID,
 	)
 	return urls, err
+}
+
+func (r *PostgresPhotoRepo) DeleteByAdvertID(ctx context.Context, advertID int) error {
+	query := `
+        DELETE
+          FROM photos
+         WHERE advert_id = $1
+    `
+	// ExecContext возвращает Result и ошибку; нам достаточно ошибки
+	if _, err := r.db.ExecContext(ctx, query, advertID); err != nil {
+		return fmt.Errorf("failed to delete photos for advert %d: %w", advertID, err)
+	}
+	return nil
 }
