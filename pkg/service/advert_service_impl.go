@@ -117,8 +117,48 @@ func (s *advertService) List(ctx context.Context, page int, sortField, sortOrder
 }
 
 func (s *advertService) Update(ctx context.Context, id int, input UpdateAdvertInput) error {
-	//TODO implement me
-	panic("implement me")
+	// 1. Сначала получаем текущее объявление
+	advert, err := s.advertRepo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// 2. Применяем частичные изменения на модель
+	if input.Name != nil {
+		advert.Name = *input.Name
+	}
+	if input.Description != nil {
+		advert.Description = *input.Description
+	}
+	if input.Price != nil {
+		if *input.Price <= 0 {
+			return errors.New("price must be > 0")
+		}
+		advert.Price = *input.Price
+	}
+
+	// 3. Обновляем саму запись объявления (тут в репозитории примут model.Advert)
+	if err := s.advertRepo.Update(ctx, advert); err != nil {
+		return err
+	}
+
+	// 4. Если нужно заменить фото — полностью очищаем и добавляем новые
+	if input.Photos != nil {
+		if err := s.photoRepo.DeleteByAdvertID(ctx, id); err != nil {
+			return err
+		}
+		for idx, url := range *input.Photos {
+			photo := model.Photo{
+				AdvertID: id,
+				URL:      url,
+				Position: idx,
+			}
+			if err := s.photoRepo.Create(ctx, photo); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (s *advertService) Delete(ctx context.Context, id int) error {
