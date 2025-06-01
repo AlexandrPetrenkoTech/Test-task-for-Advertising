@@ -3,6 +3,7 @@ package service
 import (
 	"Advertising/pkg/model"
 	"Advertising/pkg/repository"
+	"fmt"
 
 	"context"
 	"errors"
@@ -117,13 +118,11 @@ func (s *advertService) List(ctx context.Context, page int, sortField, sortOrder
 }
 
 func (s *advertService) Update(ctx context.Context, id int, input UpdateAdvertInput) error {
-	// 1. Сначала получаем текущее объявление
 	advert, err := s.advertRepo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	// 2. Применяем частичные изменения на модель
 	if input.Name != nil {
 		advert.Name = *input.Name
 	}
@@ -137,12 +136,10 @@ func (s *advertService) Update(ctx context.Context, id int, input UpdateAdvertIn
 		advert.Price = *input.Price
 	}
 
-	// 3. Обновляем саму запись объявления (тут в репозитории примут model.Advert)
 	if err := s.advertRepo.Update(ctx, advert); err != nil {
 		return err
 	}
 
-	// 4. Если нужно заменить фото — полностью очищаем и добавляем новые
 	if input.Photos != nil {
 		if err := s.photoRepo.DeleteByAdvertID(ctx, id); err != nil {
 			return err
@@ -162,6 +159,13 @@ func (s *advertService) Update(ctx context.Context, id int, input UpdateAdvertIn
 }
 
 func (s *advertService) Delete(ctx context.Context, id int) error {
-	//TODO implement me
-	panic("implement me")
+	_, err := s.advertRepo.GetByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("service.Delete: advertRepo.GetByID (id=%d): %w", id, err)
+	}
+
+	if err := s.advertRepo.Delete(ctx, id); err != nil {
+		return fmt.Errorf("service.Delete: advertRepo.Delete (id=%d): %w", id, err)
+	}
+	return nil
 }
