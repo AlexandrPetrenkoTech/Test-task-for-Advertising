@@ -4,6 +4,7 @@ import (
 	"Advertising/pkg/model"
 	"Advertising/pkg/repository"
 	"fmt"
+	"strings"
 
 	"context"
 	"errors"
@@ -86,17 +87,38 @@ func (s *advertService) GetByID(ctx context.Context, id int, fields bool) (Adver
 }
 
 func (s *advertService) List(ctx context.Context, page int, sortField, sortOrder string) ([]AdvertSummary, error) {
+	if page < 1 {
+		return nil, errors.New("page must be >= 1")
+	}
+
 	const pageSize = 10
 	offset := (page - 1) * pageSize
 
-	if sortField != "price" && sortField != "date" {
-		return nil, errors.New("invalid sort field")
-	}
-	if sortOrder != "asc" && sortOrder != "desc" {
-		return nil, errors.New("invalid sort field")
+	var defaultSortField string
+	var defaultSortOrder string
+	if strings.TrimSpace(sortField) == "" && strings.TrimSpace(sortOrder) == "" {
+		defaultSortField = "id"
+		defaultSortOrder = "ASC"
+	} else {
+		switch sortField {
+		case "price":
+			defaultSortField = "price"
+		case "date":
+			defaultSortField = "created_at"
+		default:
+			return nil, errors.New("invalid sort field: must be 'price' or 'date'")
+		}
+		switch strings.ToLower(sortOrder) {
+		case "asc":
+			defaultSortOrder = "ASC"
+		case "desc":
+			defaultSortOrder = "DESC"
+		default:
+			return nil, errors.New("invalid sort order: must be 'asc' or 'desc'")
+		}
 	}
 
-	adverts, err := s.advertRepo.List(ctx, pageSize, offset, sortField, sortOrder)
+	adverts, err := s.advertRepo.List(ctx, pageSize, offset, defaultSortField, defaultSortOrder)
 	if err != nil {
 		return nil, err
 	}
