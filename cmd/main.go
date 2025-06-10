@@ -11,6 +11,9 @@ import (
 )
 
 func main() {
+
+	//todo register Validator from handler
+
 	// Load environment variables
 	configs.LoadEnvConfig()
 
