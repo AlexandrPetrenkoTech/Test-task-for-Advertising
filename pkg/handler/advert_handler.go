@@ -162,5 +162,19 @@ func (h *AdvertHandler) UpdateAdvert(c echo.Context) error {
 
 // DeleteAdvert обрабатывает DELETE /api/adverts/:id
 func (h *AdvertHandler) DeleteAdvert(c echo.Context) error {
+	idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil || id < 1 {
+		return SendError(c, http.StatusBadRequest, error_message.ErrWrongAdvertID)
+	}
 
+	if err := h.advertSvc.Delete(c.Request().Context(), id); err != nil {
+		switch {
+		case errors.Is(err, error_message.ErrAdvertNotFound):
+			return SendError(c, http.StatusNotFound, err)
+		default:
+			return SendError(c, http.StatusInternalServerError, err)
+		}
+	}
+	return c.NoContent(http.StatusNoContent)
 }

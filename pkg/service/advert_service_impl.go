@@ -4,6 +4,7 @@ import (
 	"Advertising/pkg/error_message"
 	"Advertising/pkg/model"
 	"Advertising/pkg/repository"
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -184,11 +185,17 @@ func (s *advertService) Update(ctx context.Context, id int, input UpdateAdvertIn
 func (s *advertService) Delete(ctx context.Context, id int) error {
 	_, err := s.advertRepo.GetByID(ctx, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return error_message.ErrAdvertNotFound
+		}
 		return fmt.Errorf("service.Delete: advertRepo.GetByID (id=%d): %w", id, err)
 	}
 
 	if err := s.advertRepo.Delete(ctx, id); err != nil {
-		return fmt.Errorf("service.Delete: advertRepo.Delete (id=%d): %w", id, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return error_message.ErrAdvertNotFound
+		}
+		return fmt.Errorf("service.Delete: advertRepo.GetByID (id=%d): %w", id, err)
 	}
 	return nil
 }
