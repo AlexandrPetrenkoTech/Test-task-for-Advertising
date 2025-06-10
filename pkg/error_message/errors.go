@@ -20,4 +20,5 @@ var (
 	ErrWrongPhotos      = errors.New("advert must contain from 1 to 3 photos")
 	ErrNotPositivePrice = errors.New("price must be positive number")
 	ErrBadRequestBody   = errors.New("invalid request body")
+	ErrAdvertNotFound   = errors.New("advert not found")
 )

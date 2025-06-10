@@ -50,12 +50,44 @@ func (h *AdvertHandler) CreateAdvert(c echo.Context) error {
 		}
 	}
 
-	// Если ошибки нет — возвращаем созданный ID
 	return c.JSON(http.StatusCreated, map[string]int{"id": newID})
 }
 
 func (h *AdvertHandler) GetAdvertByID(c echo.Context) error {
+	idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil || id < 1 {
+		return SendError(c, http.StatusBadRequest, error_message.ErrWrongAdvertID)
+	}
 
+	fields := false
+	if fieldParams := c.QueryParam("fields"); fieldParams != "" {
+		if f, err := strconv.ParseBool(fieldParams); err != nil {
+			return SendError(c, http.StatusBadRequest, error_message.ErrWrongFieldsParam)
+		} else {
+			fields = f
+		}
+	}
+
+	adv, err := h.advertSvc.GetByID(c.Request().Context(), id, fields)
+	if err != nil {
+		if errors.Is(err, error_message.ErrAdvertNotFound) {
+			return SendError(c, http.StatusNotFound, err)
+		}
+		return SendError(c, http.StatusInternalServerError, err)
+	}
+
+	response := GetAdvertResponse{
+		ID:           adv.ID,
+		Name:         adv.Name,
+		MainPhotoURL: adv.MainPhotoURL,
+		Price:        adv.Price,
+	}
+	if fields {
+		response.Description = &adv.Description
+		response.AllPhotosURLs = adv.AllPhotosURLs
+	}
+	return c.JSON(http.StatusOK, response)
 }
 
 // ListAdverts обрабатывает GET /api/adverts?page=&sort=
