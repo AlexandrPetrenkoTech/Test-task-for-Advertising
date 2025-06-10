@@ -130,7 +130,34 @@ func (h *AdvertHandler) ListAdverts(c echo.Context) error {
 
 // UpdateAdvert обрабатывает PUT /api/adverts/:id
 func (h *AdvertHandler) UpdateAdvert(c echo.Context) error {
+	idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil || id < 1 {
+		return SendError(c, http.StatusBadRequest, error_message.ErrWrongAdvertID)
+	}
+	var req UpdateAdvertRequest
+	if err := c.Bind(&req); err != nil {
+		return SendError(c, http.StatusBadRequest, error_message.ErrBadRequestBody)
+	}
 
+	update := service.UpdateAdvertInput{
+		Name:        req.Name,
+		Description: req.Description,
+		Photos:      req.Photos,
+		Price:       req.Price,
+	}
+
+	if err := h.advertSvc.Update(c.Request().Context(), id, update); err != nil {
+		switch {
+		case errors.Is(err, error_message.ErrAdvertNotFound):
+			return SendError(c, http.StatusNotFound, err)
+		case errors.Is(err, error_message.ErrNotPositivePrice):
+			return SendError(c, http.StatusBadRequest, err)
+		default:
+			return SendError(c, http.StatusInternalServerError, err)
+		}
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 
 // DeleteAdvert обрабатывает DELETE /api/adverts/:id

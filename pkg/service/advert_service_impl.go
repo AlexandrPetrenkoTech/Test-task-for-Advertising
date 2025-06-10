@@ -1,6 +1,7 @@
 package service
 
 import (
+	"Advertising/pkg/error_message"
 	"Advertising/pkg/model"
 	"Advertising/pkg/repository"
 	"fmt"
@@ -142,7 +143,7 @@ func (s *advertService) List(ctx context.Context, page int, sortField, sortOrder
 func (s *advertService) Update(ctx context.Context, id int, input UpdateAdvertInput) error {
 	advert, err := s.advertRepo.GetByID(ctx, id)
 	if err != nil {
-		return err
+		return error_message.ErrAdvertNotFound
 	}
 
 	if input.Name != nil {
@@ -153,7 +154,7 @@ func (s *advertService) Update(ctx context.Context, id int, input UpdateAdvertIn
 	}
 	if input.Price != nil {
 		if *input.Price <= 0 {
-			return errors.New("price must be > 0")
+			return error_message.ErrNotPositivePrice
 		}
 		advert.Price = *input.Price
 	}
