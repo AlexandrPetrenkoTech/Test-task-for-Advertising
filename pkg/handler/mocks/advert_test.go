@@ -216,3 +216,34 @@ func TestUpdate_Success(t *testing.T) {
 	// 6. Убеждаемся, что mock‑сервис получил ожидаемый вызов
 	svc.AssertExpectations(t)
 }
+
+func TestDeleteAdvert_Success(t *testing.T) {
+	// 1. Настраиваем Echo и мок‑сервис
+	e := echo.New()
+	svc := new(MockAdvertService)
+	h := handler.NewAdvertHandler(e, svc)
+
+	// 2. Настраиваем мок: при любом контексте и id=7 вернуть nil (успешное удаление)
+	svc.
+		On("Delete", mock.Anything, 7).
+		Return(nil).
+		Once()
+
+	// 3. Формируем HTTP‑запрос DELETE /api/adverts/7
+	req := httptest.NewRequest(http.MethodDelete, "/api/adverts/7", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+	ctx.SetParamNames("id")
+	ctx.SetParamValues("7")
+
+	// 4. Вызываем handler
+	err := h.DeleteAdvert(ctx)
+	assert.NoError(t, err)
+
+	// 5. Проверяем статус (204 No Content) и отсутствие тела
+	assert.Equal(t, http.StatusNoContent, rec.Code)
+	assert.Empty(t, rec.Body.String())
+
+	// 6. Убеждаемся, что mock‑сервис получил ожидаемый вызов
+	svc.AssertExpectations(t)
+}
