@@ -115,7 +115,7 @@ func TestGetByID_Success(t *testing.T) {
 		Description:   "Some desc",
 		AllPhotosURLs: []string{"http://a", "http://b"},
 	}
-	svc.On("GetByID", mock.Anything, 42, true)
+	svc.On("GetByID", mock.Anything, 42, true).Return(expected, nil).Once()
 
 	req := httptest.NewRequest(http.MethodGet, "/api/adverts/42", nil)
 	rec := httptest.NewRecorder()
@@ -130,5 +130,42 @@ func TestGetByID_Success(t *testing.T) {
 	var actual service.AdvertDetail
 	_ = json.Unmarshal(rec.Body.Bytes(), &actual)
 	assert.Equal(t, expected, actual)
+	svc.AssertExpectations(t)
+}
+
+func TestList_Success(t *testing.T) {
+	e := echo.New()
+	svc := new(MockAdvertService)
+	h := handler.NewAdvertHandler(e, svc)
+
+	expected := []service.AdvertSummary{
+		{
+			ID:           1,
+			Name:         "First Ad",
+			MainPhotoURL: "http://a1",
+			Price:        100,
+		},
+		{
+			ID:           2,
+			Name:         "Second Ad",
+			MainPhotoURL: "http://a2",
+			Price:        200,
+		},
+	}
+	svc.On("List", mock.Anything, 1, "price", "asc").Return(expected, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/adverts?page=1&sort=price_asc", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	err := h.ListAdverts(ctx)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	// 5) Десериализуем и сравниваем
+	var actual []service.AdvertSummary
+	_ = json.Unmarshal(rec.Body.Bytes(), &actual)
+	assert.Equal(t, expected, actual)
+
 	svc.AssertExpectations(t)
 }
