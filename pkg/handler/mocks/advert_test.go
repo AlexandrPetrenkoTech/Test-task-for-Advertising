@@ -169,3 +169,50 @@ func TestList_Success(t *testing.T) {
 
 	svc.AssertExpectations(t)
 }
+
+func TestUpdate_Success(t *testing.T) {
+	e := echo.New()
+	svc := new(MockAdvertService)
+	h := handler.NewAdvertHandler(e, svc)
+
+	// 2. Подготавливаем входные данные запроса и для мока
+	reqBody := handler.UpdateAdvertRequest{
+		Name:        "Updated Name",
+		Description: "Updated Desc",
+		Photos:      []string{"http://new-photo"},
+		Price:       250,
+	}
+	// Предположим, что handler конвертирует UpdateAdvertRequest в service.UpdateAdvertInput
+	svcInput := service.UpdateAdvertInput{
+		Name:        reqBody.Name,
+		Description: reqBody.Description,
+		Photos:      reqBody.Photos,
+		Price:       reqBody.Price,
+	}
+
+	// Настраиваем мок: при любом контексте, id=5 и svcInput вернуть nil
+	svc.
+		On("Update", mock.Anything, 5, svcInput).
+		Return(nil).
+		Once()
+
+	// 3. Формируем HTTP‑запрос PUT /api/adverts/5
+	bodyBytes, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPut, "/api/adverts/5", bytes.NewReader(bodyBytes))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+	ctx.SetParamNames("id")
+	ctx.SetParamValues("5")
+
+	// 4. Вызываем handler
+	err := h.UpdateAdvert(ctx)
+	assert.NoError(t, err)
+
+	// 5. Проверяем статус (204 No Content) и отсутствие тела
+	assert.Equal(t, http.StatusNoContent, rec.Code)
+	assert.Empty(t, rec.Body.String())
+
+	// 6. Убеждаемся, что mock‑сервис получил ожидаемый вызов
+	svc.AssertExpectations(t)
+}
