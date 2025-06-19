@@ -61,3 +61,13 @@ migrate-down:
 clean:
 	@echo "Cleaning up..."
 	rm -f $(BINARY_NAME)
+
+create-test-db:
+	@psql -U $(POSTGRES_USER) -h $(DB_HOST) -p $(DB_PORT) -c "DROP DATABASE IF EXISTS advertising_test;"
+	@psql -U $(POSTGRES_USER) -h $(DB_HOST) -p $(DB_PORT) -c "CREATE DATABASE advertising_test;"
+
+migrate-test-up: create-test-db
+	migrate -path migrations -database "$(TEST_DATABASE_DSN)" up
+
+migrate-test-down:
+	migrate -path migrations -database "$(TEST_DATABASE_DSN)" down
