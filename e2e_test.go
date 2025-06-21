@@ -73,3 +73,74 @@ func TestE2E_CreateAdvert(t *testing.T) {
 		})
 	})
 }
+
+func TestE2E_GetAdvertByID(t *testing.T) {
+	Convey("E2E: GET /api/adverts/:id", t, func() {
+		// 1) Вставляем в базу advert и связанные фото
+		var id int
+		err := db.QueryRow(`
+            INSERT INTO adverts (name, description, price)
+            VALUES ($1, $2, $3)
+            RETURNING id
+        `, "Detail Ad", "Detailed description", 500).Scan(&id)
+		So(err, ShouldBeNil)
+
+		_, err = db.Exec(`
+            INSERT INTO photos (advert_id, url, position) VALUES
+            ($1, $2, 1),
+            ($1, $3, 2)
+        `, id, "http://main-photo", "http://gallery-photo")
+		So(err, ShouldBeNil)
+
+		// 2) Без параметра fields (должны вернуть только name, price и главную фотографию)
+		Convey("без ?fields должно вернуть только id, name, price и main_photo", func() {
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/adverts/%d", id), nil)
+			rec := httptest.NewRecorder()
+			srv.ServeHTTP(rec, req)
+
+			So(rec.Code, ShouldEqual, http.StatusOK)
+
+			var resp struct {
+				ID        int     `json:"id"`
+				Name      string  `json:"name"`
+				Price     float64 `json:"price"`
+				MainPhoto string  `json:"main_photo"`
+			}
+			So(json.Unmarshal(rec.Body.Bytes(), &resp), ShouldBeNil)
+			So(resp.ID, ShouldEqual, id)
+			So(resp.Name, ShouldEqual, "Detail Ad")
+			So(resp.Price, ShouldEqual, 500.0)
+			So(resp.MainPhoto, ShouldEqual, "http://main-photo")
+		})
+
+		// 3) С параметром fields=true (должны вернуть все поля + все фото)
+		Convey("c ?fields=true должно вернуть все поля и список photos", func() {
+			url := fmt.Sprintf("/api/adverts/%d?fields=true", id)
+			req := httptest.NewRequest(http.MethodGet, url, nil)
+			rec := httptest.NewRecorder()
+			srv.ServeHTTP(rec, req)
+
+			So(rec.Code, ShouldEqual, http.StatusOK)
+
+			var resp struct {
+				ID          int      `json:"id"`
+				Name        string   `json:"name"`
+				Description string   `json:"description"`
+				Price       float64  `json:"price"`
+				Photos      []string `json:"photos"`
+			}
+			So(json.Unmarshal(rec.Body.Bytes(), &resp), ShouldBeNil)
+			So(resp.ID, ShouldEqual, id)
+			So(resp.Name, ShouldEqual, "Detail Ad")
+			So(resp.Description, ShouldEqual, "Detailed description")
+			So(resp.Price, ShouldEqual, 500.0)
+			So(len(resp.Photos), ShouldEqual, 2)
+			So(resp.Photos[0], ShouldEqual, "http://main-photo")
+			So(resp.Photos[1], ShouldEqual, "http://gallery-photo")
+		})
+	})
+}
+
+func TestE2E_ListAdverts(t *testing.T)  {}
+func TestE2E_UpdateAdvert(t *testing.T) {}
+func TestE2E_DeleteAdvert(t *testing.T) {}
