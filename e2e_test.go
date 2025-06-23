@@ -211,5 +211,64 @@ func TestE2E_ListAdverts(t *testing.T) {
 	})
 }
 
-func TestE2E_UpdateAdvert(t *testing.T) {}
+func TestE2E_UpdateAdvert(t *testing.T) {
+	Convey("E2E: PUT /api/adverts/:id", t, func() {
+		// 1) Вставляем исходное объявление
+		var id int
+		So(db.QueryRow(`
+            INSERT INTO adverts (name, description, price)
+            VALUES ($1, $2, $3)
+            RETURNING id
+        `, "Old Name", "Old Desc", 150).Scan(&id), ShouldBeNil)
+
+		// И главное фото
+		So(db.Exec(`
+            INSERT INTO photos (advert_id, url, position)
+            VALUES ($1, $2, 1)
+        `, id, "http://old-photo"), ShouldBeNil)
+
+		// 2) Формируем данные для обновления
+		updatePayload := map[string]interface{}{
+			"title":       "New Name",
+			"description": "New Desc",
+			"photos":      []string{"http://new-main", "http://new-gallery"},
+			"price":       300,
+		}
+		body, _ := json.Marshal(updatePayload)
+
+		// 3) Выполняем запрос PUT /api/adverts/:id
+		url := fmt.Sprintf("/api/adverts/%d", id)
+		req := httptest.NewRequest(http.MethodPut, url, bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+		srv.ServeHTTP(rec, req)
+
+		// 4) Ожидаем 204 No Content
+		So(rec.Code, ShouldEqual, http.StatusNoContent)
+
+		// 5) Сразу проверяем, что данные обновились через GET detail
+		req2 := httptest.NewRequest(http.MethodGet, url+"?fields=true", nil)
+		rec2 := httptest.NewRecorder()
+		srv.ServeHTTP(rec2, req2)
+
+		So(rec2.Code, ShouldEqual, http.StatusOK)
+		var resp struct {
+			ID          int      `json:"id"`
+			Name        string   `json:"name"`
+			Description string   `json:"description"`
+			Price       float64  `json:"price"`
+			Photos      []string `json:"photos"`
+		}
+		So(json.Unmarshal(rec2.Body.Bytes(), &resp), ShouldBeNil)
+
+		So(resp.ID, ShouldEqual, id)
+		So(resp.Name, ShouldEqual, "New Name")
+		So(resp.Description, ShouldEqual, "New Desc")
+		So(resp.Price, ShouldEqual, 300.0)
+		So(len(resp.Photos), ShouldEqual, 2)
+		So(resp.Photos[0], ShouldEqual, "http://new-main")
+		So(resp.Photos[1], ShouldEqual, "http://new-gallery")
+	})
+}
+
 func TestE2E_DeleteAdvert(t *testing.T) {}
