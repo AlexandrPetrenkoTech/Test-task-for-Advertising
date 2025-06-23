@@ -271,4 +271,36 @@ func TestE2E_UpdateAdvert(t *testing.T) {
 	})
 }
 
-func TestE2E_DeleteAdvert(t *testing.T) {}
+func TestE2E_DeleteAdvert(t *testing.T) {
+	Convey("E2E: DELETE /api/adverts/:id", t, func() {
+		// 1) Вставляем тестовое объявление и фото
+		var id int
+		So(db.QueryRow(`
+            INSERT INTO adverts (name, description, price)
+            VALUES ($1, $2, $3)
+            RETURNING id
+        `, "ToDelete", "Will be deleted", 123).Scan(&id), ShouldBeNil)
+
+		So(db.Exec(`
+            INSERT INTO photos (advert_id, url, position)
+            VALUES ($1, $2, 1)
+        `, id, "http://tobedeleted"), ShouldBeNil)
+
+		// 2) Выполняем DELETE /api/adverts/:id
+		url := fmt.Sprintf("/api/adverts/%d", id)
+		req := httptest.NewRequest(http.MethodDelete, url, nil)
+		rec := httptest.NewRecorder()
+		srv.ServeHTTP(rec, req)
+
+		// 3) Ожидаем 204 No Content
+		So(rec.Code, ShouldEqual, http.StatusNoContent)
+		So(rec.Body.Len(), ShouldEqual, 0)
+
+		// 4) Проверяем, что GET по тому же ID возвращает 404
+		req2 := httptest.NewRequest(http.MethodGet, url, nil)
+		rec2 := httptest.NewRecorder()
+		srv.ServeHTTP(rec2, req2)
+
+		So(rec2.Code, ShouldEqual, http.StatusNotFound)
+	})
+}
