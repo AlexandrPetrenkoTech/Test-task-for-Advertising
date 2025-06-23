@@ -141,6 +141,75 @@ func TestE2E_GetAdvertByID(t *testing.T) {
 	})
 }
 
-func TestE2E_ListAdverts(t *testing.T)  {}
+func TestE2E_ListAdverts(t *testing.T) {
+	Convey("E2E: GET /api/adverts?page=1&sort=price_desc", t, func() {
+		// 1) Засеяем два объявления с разными ценами
+		_, err := db.Exec(`
+            INSERT INTO adverts (name, description, price) VALUES
+            ('Cheap Ad', 'desc1', 100),
+            ('Expensive Ad', 'desc2', 500)
+        `)
+		So(err, ShouldBeNil)
+
+		// Свяжем к каждому объявлению по одному фото
+		// Получаем их id в правильном порядке
+		rows, err := db.Query(`SELECT id FROM adverts ORDER BY price DESC`)
+		So(err, ShouldBeNil)
+		defer rows.Close()
+
+		var ids []int
+		for rows.Next() {
+			var id int
+			So(rows.Scan(&id), ShouldBeNil)
+			ids = append(ids, id)
+		}
+		So(len(ids), ShouldEqual, 2)
+
+		for _, id := range ids {
+			_, err := db.Exec(`
+                INSERT INTO photos (advert_id, url, position) VALUES
+                ($1, $2, 1)
+            `, id, fmt.Sprintf("http://photo-%d", id))
+			So(err, ShouldBeNil)
+		}
+
+		// 2) Выполняем GET /api/adverts?page=1&sort=price_desc
+		req := httptest.NewRequest(
+			http.MethodGet,
+			"/api/adverts?page=1&sort=price_desc",
+			nil,
+		)
+		rec := httptest.NewRecorder()
+		srv.ServeHTTP(rec, req)
+
+		Convey("Должен вернуть список из двух элементов в порядке убывания цены", func() {
+			So(rec.Code, ShouldEqual, http.StatusOK)
+
+			// Описываем структуру summary-ответа
+			type summary struct {
+				ID        int     `json:"id"`
+				Name      string  `json:"name"`
+				MainPhoto string  `json:"main_photo"`
+				Price     float64 `json:"price"`
+			}
+			var resp []summary
+			So(json.Unmarshal(rec.Body.Bytes(), &resp), ShouldBeNil)
+
+			// Длина ответа
+			So(len(resp), ShouldEqual, 2)
+
+			// Первый элемент — Expensive Ad
+			So(resp[0].Name, ShouldEqual, "Expensive Ad")
+			So(resp[0].Price, ShouldEqual, 500.0)
+			So(resp[0].MainPhoto, ShouldEqual, fmt.Sprintf("http://photo-%d", ids[0]))
+
+			// Второй — Cheap Ad
+			So(resp[1].Name, ShouldEqual, "Cheap Ad")
+			So(resp[1].Price, ShouldEqual, 100.0)
+			So(resp[1].MainPhoto, ShouldEqual, fmt.Sprintf("http://photo-%d", ids[1]))
+		})
+	})
+}
+
 func TestE2E_UpdateAdvert(t *testing.T) {}
 func TestE2E_DeleteAdvert(t *testing.T) {}
