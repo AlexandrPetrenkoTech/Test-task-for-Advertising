@@ -11,15 +11,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// AdvertHandler отвечает за HTTP-эндпоинты /api/adverts.
+// AdvertHandler is responsible for HTTP endpoints under /api/adverts.
 type AdvertHandler struct {
 	advertSvc service.AdvertService
 }
 
-// NewAdvertHandler создаёт новый экземпляр и регистрирует маршруты в Echo.
-// Предполагается, что e уже инициализирован (echo.New()).
+// NewAdvertHandler creates a new instance and registers routes in Echo.
+// It is assumed that e has already been initialized (echo.New()).
 
-// CreateAdvert обрабатывает POST /api/adverts
+// CreateAdvert handles POST /api/adverts
 func (h *AdvertHandler) CreateAdvert(c echo.Context) error {
 	var req CreateAdvertRequest
 	if err := c.Bind(&req); err != nil {
@@ -38,7 +38,7 @@ func (h *AdvertHandler) CreateAdvert(c echo.Context) error {
 
 	newID, err := h.advertSvc.Create(c.Request().Context(), svcInput)
 	if err != nil {
-		// Обрабатываем все возможные «известные» ошибки
+		// Handle all possible "known" errors
 		switch {
 		case errors.Is(err, error_message.ErrWrongTitle),
 			errors.Is(err, error_message.ErrWrongDescription),
@@ -53,6 +53,7 @@ func (h *AdvertHandler) CreateAdvert(c echo.Context) error {
 	return c.JSON(http.StatusCreated, map[string]int{"id": newID})
 }
 
+// GetAdvertByID handles GET /api/adverts/:id
 func (h *AdvertHandler) GetAdvertByID(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
@@ -90,9 +91,9 @@ func (h *AdvertHandler) GetAdvertByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-// ListAdverts обрабатывает GET /api/adverts?page=&sort=
+// ListAdverts handles GET /api/adverts?page=&sort=
 func (h *AdvertHandler) ListAdverts(c echo.Context) error {
-	// 1) Парсим page (по умолчанию 1)
+	// 1) Parse page (default is 1)
 	pageParam := c.QueryParam("page")
 	page := 1
 	if pageParam != "" {
@@ -101,34 +102,34 @@ func (h *AdvertHandler) ListAdverts(c echo.Context) error {
 		}
 	}
 
-	// 2) Читаем sortParam; если пусто — оставляем sortField, sortOrder == ""
+	// 2) Read sortParam; if empty — leave sortField and sortOrder as empty strings
 	sortParam := c.QueryParam("sort")
 	var sortField, sortOrder string
 	if sortParam != "" {
 		parts := strings.SplitN(sortParam, "_", 2)
 		if len(parts) != 2 {
 			return c.JSON(http.StatusBadRequest, map[string]string{
-				"error": "invalid sort parameter; expected 'price_asc', 'date_desc' и т.д.",
+				"error": "invalid sort parameter; expected 'price_asc', 'date_desc', etc.",
 			})
 		}
-		sortField = parts[0] // "price" или "date" (или невалидная строка)
-		sortOrder = parts[1] // "asc" или "desc" (или невалидная строка)
+		sortField = parts[0] // "price" or "date" (or invalid string)
+		sortOrder = parts[1] // "asc" or "desc" (or invalid string)
 	}
-	// Если sortParam == "", то sortField == "" и sortOrder == "" —
-	// и сервис сам поставит дефолт “id ASC”.
+	// If sortParam == "", then sortField == "" and sortOrder == "" —
+	// and the service will apply the default “id ASC”.
 
-	// 3) Вызываем сервис, передавая пустые строки, если сортировки нет
+	// 3) Call the service, passing empty strings if no sorting
 	listResp, err := h.advertSvc.List(c.Request().Context(), page, sortField, sortOrder)
 	if err != nil {
-		// Если например sortField/sortOrder оказались некорректны, сервис вернёт ошибку.
+		// For example, if sortField/sortOrder turned out invalid, the service will return an error.
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
-	// 4) Отправляем ответ
+	// 4) Send response
 	return c.JSON(http.StatusOK, listResp)
 }
 
-// UpdateAdvert обрабатывает PUT /api/adverts/:id
+// UpdateAdvert handles PUT /api/adverts/:id
 func (h *AdvertHandler) UpdateAdvert(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
@@ -160,7 +161,7 @@ func (h *AdvertHandler) UpdateAdvert(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// DeleteAdvert обрабатывает DELETE /api/adverts/:id
+// DeleteAdvert handles DELETE /api/adverts/:id
 func (h *AdvertHandler) DeleteAdvert(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)

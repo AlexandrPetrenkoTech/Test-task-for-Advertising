@@ -63,12 +63,12 @@ func (h *MockAdvertService) Delete(
 }
 
 func TestCreate_Success(t *testing.T) {
-	// 1. Настраиваем Echo и мок-сервис
+	// 1. Set up Echo and mock service
 	e := echo.New()
 	svc := new(MockAdvertService)
 	h := handler.NewAdvertHandler(e, svc)
 
-	// 2. Подготавливаем входные данные и ожидания моков
+	// 2. Prepare input data and mock expectations
 	input := handler.CreateAdvertRequest{
 		Name:        "Sample",
 		Description: "Desc",
@@ -77,18 +77,18 @@ func TestCreate_Success(t *testing.T) {
 	}
 	svc.On("Create", mock.Anything, input).Return(1, nil).Once()
 
-	// 3. Формируем HTTP-запрос с JSON-телом
+	// 3. Form the HTTP request with JSON body
 	body, _ := json.Marshal(input)
 	req := httptest.NewRequest(http.MethodPost, "/api/adverts", bytes.NewReader(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)
 
-	// 4. Вызываем метод handler
+	// 4. Invoke the handler method
 	err := h.CreateAdvert(ctx)
 	assert.NoError(t, err)
 
-	// 5. Проверяем статус и тело ответа
+	// 5. Check the status and response body
 	assert.Equal(t, http.StatusCreated, rec.Code)
 	var resp struct {
 		ID int `json:"id"`
@@ -96,7 +96,7 @@ func TestCreate_Success(t *testing.T) {
 	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
 	assert.Equal(t, 1, resp.ID)
 
-	// 6. Убеждаемся, что все ожидания моков отработали
+	// 6. Ensure all mock expectations were met
 	svc.AssertExpectations(t)
 }
 
@@ -162,7 +162,7 @@ func TestList_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
-	// 5) Десериализуем и сравниваем
+	// 5. Deserialize and compare
 	var actual []service.AdvertSummary
 	_ = json.Unmarshal(rec.Body.Bytes(), &actual)
 	assert.Equal(t, expected, actual)
@@ -175,14 +175,14 @@ func TestUpdate_Success(t *testing.T) {
 	svc := new(MockAdvertService)
 	h := handler.NewAdvertHandler(e, svc)
 
-	// 2. Подготавливаем входные данные запроса и для мока
+	// 2. Prepare the request input data and for the mock
 	reqBody := handler.UpdateAdvertRequest{
 		Name:        "Updated Name",
 		Description: "Updated Desc",
 		Photos:      []string{"http://new-photo"},
 		Price:       250,
 	}
-	// Предположим, что handler конвертирует UpdateAdvertRequest в service.UpdateAdvertInput
+	// Assume that the handler converts UpdateAdvertRequest to service.UpdateAdvertInput
 	svcInput := service.UpdateAdvertInput{
 		Name:        reqBody.Name,
 		Description: reqBody.Description,
@@ -190,13 +190,13 @@ func TestUpdate_Success(t *testing.T) {
 		Price:       reqBody.Price,
 	}
 
-	// Настраиваем мок: при любом контексте, id=5 и svcInput вернуть nil
+	// Set up the mock: for any context, id=5 and svcInput, return nil
 	svc.
 		On("Update", mock.Anything, 5, svcInput).
 		Return(nil).
 		Once()
 
-	// 3. Формируем HTTP‑запрос PUT /api/adverts/5
+	// 3. Form the HTTP PUT request /api/adverts/5
 	bodyBytes, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPut, "/api/adverts/5", bytes.NewReader(bodyBytes))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -205,45 +205,45 @@ func TestUpdate_Success(t *testing.T) {
 	ctx.SetParamNames("id")
 	ctx.SetParamValues("5")
 
-	// 4. Вызываем handler
+	// 4. Call the handler
 	err := h.UpdateAdvert(ctx)
 	assert.NoError(t, err)
 
-	// 5. Проверяем статус (204 No Content) и отсутствие тела
+	// 5. Check status (204 No Content) and empty body
 	assert.Equal(t, http.StatusNoContent, rec.Code)
 	assert.Empty(t, rec.Body.String())
 
-	// 6. Убеждаемся, что mock‑сервис получил ожидаемый вызов
+	// 6. Ensure that the mock service received the expected call
 	svc.AssertExpectations(t)
 }
 
 func TestDeleteAdvert_Success(t *testing.T) {
-	// 1. Настраиваем Echo и мок‑сервис
+	// 1. Set up Echo and mock service
 	e := echo.New()
 	svc := new(MockAdvertService)
 	h := handler.NewAdvertHandler(e, svc)
 
-	// 2. Настраиваем мок: при любом контексте и id=7 вернуть nil (успешное удаление)
+	// 2. Set up the mock: for any context and id=7 return nil (successful deletion)
 	svc.
 		On("Delete", mock.Anything, 7).
 		Return(nil).
 		Once()
 
-	// 3. Формируем HTTP‑запрос DELETE /api/adverts/7
+	// 3. Form the HTTP DELETE request /api/adverts/7
 	req := httptest.NewRequest(http.MethodDelete, "/api/adverts/7", nil)
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)
 	ctx.SetParamNames("id")
 	ctx.SetParamValues("7")
 
-	// 4. Вызываем handler
+	// 4. Call the handler
 	err := h.DeleteAdvert(ctx)
 	assert.NoError(t, err)
 
-	// 5. Проверяем статус (204 No Content) и отсутствие тела
+	// 5. Check status (204 No Content) and empty body
 	assert.Equal(t, http.StatusNoContent, rec.Code)
 	assert.Empty(t, rec.Body.String())
 
-	// 6. Убеждаемся, что mock‑сервис получил ожидаемый вызов
+	// 6. Ensure that the mock service received the expected call
 	svc.AssertExpectations(t)
 }

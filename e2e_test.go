@@ -19,38 +19,38 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	// 1. Читаем DSN для тестовой базы из env
+	// 1. Read DSN for the test database from env
 	dsn := os.Getenv("TEST_DATABASE_DSN")
 	if dsn == "" {
 		panic("TEST_DATABASE_DSN is not set")
 	}
 
-	// 2. Пересоздаём и мигрируем тестовую БД
+	// 2. Recreate and migrate the test DB
 	exec.Command("make", "migrate-test-up").Run()
 
-	// 3. Подключаемся к БД
+	// 3. Connect to the database
 	var err error
 	db, err = sqlx.Open("postgres", dsn)
 	if err != nil {
 		panic(err)
 	}
 
-	// 4. Инициализируем Echo‑сервер точно так же, как в cmd/main.go
-	srv = cmd.NewServer(db) // или как у вас называется
+	// 4. Initialize Echo server exactly as in cmd/main.go
+	srv = cmd.NewServer(db) // or however it's named
 
-	// 5. Запускаем все E2E‑тесты
+	// 5. Run all E2E tests
 	code := m.Run()
 
-	// 6. Откатываем миграции и выхлопаем
+	// 6. Rollback migrations and exit
 	exec.Command("make", "migrate-test-down").Run()
 	os.Exit(code)
 }
 
 func TestE2E_CreateAdvert(t *testing.T) {
-	Convey("Когда POST /api/adverts с валидным JSON", t, func() {
+	Convey("When POST /api/adverts with valid JSON", t, func() {
 		payload := map[string]interface{}{
 			"name":        "E2E Ad",
-			"description": "Тестовое объявление",
+			"description": "Test advert",
 			"photos":      []string{"http://img1"},
 			"price":       1000,
 		}
@@ -60,10 +60,10 @@ func TestE2E_CreateAdvert(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
 
-		// Прогоняем через вью вашего echo‑сервера
+		// Pass through the echo server view
 		srv.ServeHTTP(rec, req)
 
-		Convey("Должен вернуть 201 и тело с ID > 0", func() {
+		Convey("Should return 201 and body with ID > 0", func() {
 			So(rec.Code, ShouldEqual, http.StatusCreated)
 			var resp struct {
 				ID int `json:"id"`
@@ -76,7 +76,7 @@ func TestE2E_CreateAdvert(t *testing.T) {
 
 func TestE2E_GetAdvertByID(t *testing.T) {
 	Convey("E2E: GET /api/adverts/:id", t, func() {
-		// 1) Вставляем в базу advert и связанные фото
+		// 1) Insert advert and related photos into the DB
 		var id int
 		err := db.QueryRow(`
             INSERT INTO adverts (name, description, price)
@@ -92,8 +92,8 @@ func TestE2E_GetAdvertByID(t *testing.T) {
         `, id, "http://main-photo", "http://gallery-photo")
 		So(err, ShouldBeNil)
 
-		// 2) Без параметра fields (должны вернуть только name, price и главную фотографию)
-		Convey("без ?fields должно вернуть только id, name, price и main_photo", func() {
+		// 2) Without fields param (should return only name, price, and main photo)
+		Convey("without ?fields should return only id, name, price, and main_photo", func() {
 			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/adverts/%d", id), nil)
 			rec := httptest.NewRecorder()
 			srv.ServeHTTP(rec, req)
@@ -113,8 +113,8 @@ func TestE2E_GetAdvertByID(t *testing.T) {
 			So(resp.MainPhoto, ShouldEqual, "http://main-photo")
 		})
 
-		// 3) С параметром fields=true (должны вернуть все поля + все фото)
-		Convey("c ?fields=true должно вернуть все поля и список photos", func() {
+		// 3) With fields=true param (should return all fields and all photos)
+		Convey("with ?fields=true should return all fields and photos", func() {
 			url := fmt.Sprintf("/api/adverts/%d?fields=true", id)
 			req := httptest.NewRequest(http.MethodGet, url, nil)
 			rec := httptest.NewRecorder()
@@ -143,7 +143,7 @@ func TestE2E_GetAdvertByID(t *testing.T) {
 
 func TestE2E_ListAdverts(t *testing.T) {
 	Convey("E2E: GET /api/adverts?page=1&sort=price_desc", t, func() {
-		// 1) Засеяем два объявления с разными ценами
+		// 1) Seed two adverts with different prices
 		_, err := db.Exec(`
             INSERT INTO adverts (name, description, price) VALUES
             ('Cheap Ad', 'desc1', 100),
@@ -151,8 +151,8 @@ func TestE2E_ListAdverts(t *testing.T) {
         `)
 		So(err, ShouldBeNil)
 
-		// Свяжем к каждому объявлению по одному фото
-		// Получаем их id в правильном порядке
+		// Link one photo to each advert
+		// Get their ids in correct order
 		rows, err := db.Query(`SELECT id FROM adverts ORDER BY price DESC`)
 		So(err, ShouldBeNil)
 		defer rows.Close()
@@ -173,7 +173,7 @@ func TestE2E_ListAdverts(t *testing.T) {
 			So(err, ShouldBeNil)
 		}
 
-		// 2) Выполняем GET /api/adverts?page=1&sort=price_desc
+		// 2) Perform GET /api/adverts?page=1&sort=price_desc
 		req := httptest.NewRequest(
 			http.MethodGet,
 			"/api/adverts?page=1&sort=price_desc",
@@ -182,10 +182,10 @@ func TestE2E_ListAdverts(t *testing.T) {
 		rec := httptest.NewRecorder()
 		srv.ServeHTTP(rec, req)
 
-		Convey("Должен вернуть список из двух элементов в порядке убывания цены", func() {
+		Convey("Should return a list of two items sorted by price descending", func() {
 			So(rec.Code, ShouldEqual, http.StatusOK)
 
-			// Описываем структуру summary-ответа
+			// Define summary response structure
 			type summary struct {
 				ID        int     `json:"id"`
 				Name      string  `json:"name"`
@@ -195,15 +195,15 @@ func TestE2E_ListAdverts(t *testing.T) {
 			var resp []summary
 			So(json.Unmarshal(rec.Body.Bytes(), &resp), ShouldBeNil)
 
-			// Длина ответа
+			// Check length of response
 			So(len(resp), ShouldEqual, 2)
 
-			// Первый элемент — Expensive Ad
+			// First item should be Expensive Ad
 			So(resp[0].Name, ShouldEqual, "Expensive Ad")
 			So(resp[0].Price, ShouldEqual, 500.0)
 			So(resp[0].MainPhoto, ShouldEqual, fmt.Sprintf("http://photo-%d", ids[0]))
 
-			// Второй — Cheap Ad
+			// Second — Cheap Ad
 			So(resp[1].Name, ShouldEqual, "Cheap Ad")
 			So(resp[1].Price, ShouldEqual, 100.0)
 			So(resp[1].MainPhoto, ShouldEqual, fmt.Sprintf("http://photo-%d", ids[1]))
@@ -213,7 +213,7 @@ func TestE2E_ListAdverts(t *testing.T) {
 
 func TestE2E_UpdateAdvert(t *testing.T) {
 	Convey("E2E: PUT /api/adverts/:id", t, func() {
-		// 1) Вставляем исходное объявление
+		// 1) Insert initial advert
 		var id int
 		So(db.QueryRow(`
             INSERT INTO adverts (name, description, price)
@@ -221,13 +221,13 @@ func TestE2E_UpdateAdvert(t *testing.T) {
             RETURNING id
         `, "Old Name", "Old Desc", 150).Scan(&id), ShouldBeNil)
 
-		// И главное фото
+		// And main photo
 		So(db.Exec(`
             INSERT INTO photos (advert_id, url, position)
             VALUES ($1, $2, 1)
         `, id, "http://old-photo"), ShouldBeNil)
 
-		// 2) Формируем данные для обновления
+		// 2) Create update payload
 		updatePayload := map[string]interface{}{
 			"title":       "New Name",
 			"description": "New Desc",
@@ -236,17 +236,17 @@ func TestE2E_UpdateAdvert(t *testing.T) {
 		}
 		body, _ := json.Marshal(updatePayload)
 
-		// 3) Выполняем запрос PUT /api/adverts/:id
+		// 3) Perform PUT /api/adverts/:id
 		url := fmt.Sprintf("/api/adverts/%d", id)
 		req := httptest.NewRequest(http.MethodPut, url, bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
 		srv.ServeHTTP(rec, req)
 
-		// 4) Ожидаем 204 No Content
+		// 4) Expect 204 No Content
 		So(rec.Code, ShouldEqual, http.StatusNoContent)
 
-		// 5) Сразу проверяем, что данные обновились через GET detail
+		// 5) Immediately check updated data with GET detail
 		req2 := httptest.NewRequest(http.MethodGet, url+"?fields=true", nil)
 		rec2 := httptest.NewRecorder()
 		srv.ServeHTTP(rec2, req2)
@@ -273,7 +273,7 @@ func TestE2E_UpdateAdvert(t *testing.T) {
 
 func TestE2E_DeleteAdvert(t *testing.T) {
 	Convey("E2E: DELETE /api/adverts/:id", t, func() {
-		// 1) Вставляем тестовое объявление и фото
+		// 1) Insert test advert and photo
 		var id int
 		So(db.QueryRow(`
             INSERT INTO adverts (name, description, price)
@@ -286,17 +286,17 @@ func TestE2E_DeleteAdvert(t *testing.T) {
             VALUES ($1, $2, 1)
         `, id, "http://tobedeleted"), ShouldBeNil)
 
-		// 2) Выполняем DELETE /api/adverts/:id
+		// 2) Perform DELETE /api/adverts/:id
 		url := fmt.Sprintf("/api/adverts/%d", id)
 		req := httptest.NewRequest(http.MethodDelete, url, nil)
 		rec := httptest.NewRecorder()
 		srv.ServeHTTP(rec, req)
 
-		// 3) Ожидаем 204 No Content
+		// 3) Expect 204 No Content
 		So(rec.Code, ShouldEqual, http.StatusNoContent)
 		So(rec.Body.Len(), ShouldEqual, 0)
 
-		// 4) Проверяем, что GET по тому же ID возвращает 404
+		// 4) Check that GET by the same ID returns 404
 		req2 := httptest.NewRequest(http.MethodGet, url, nil)
 		rec2 := httptest.NewRecorder()
 		srv.ServeHTTP(rec2, req2)

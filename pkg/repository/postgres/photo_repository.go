@@ -58,7 +58,7 @@ func (r *PostgresPhotoRepo) DeleteByAdvertID(ctx context.Context, advertID int) 
           FROM photos
          WHERE advert_id = $1
     `
-	// ExecContext возвращает Result и ошибку; нам достаточно ошибки
+	// ExecContext returns a Result and an error; we only care about the error
 	if _, err := r.db.ExecContext(ctx, query, advertID); err != nil {
 		return fmt.Errorf("failed to delete photos for advert %d: %w", advertID, err)
 	}

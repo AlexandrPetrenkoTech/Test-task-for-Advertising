@@ -2,7 +2,7 @@ package service
 
 import "context"
 
-// CreateAdvertInput содержит данные для создания объявления.
+// CreateAdvertInput contains data for creating an advert.
 type CreateAdvertInput struct {
 	Name        string
 	Description string
@@ -10,8 +10,8 @@ type CreateAdvertInput struct {
 	Price       float64
 }
 
-// UpdateAdvertInput содержит поля для частичного обновления объявления.
-// Любые из них могут быть nil — тогда соответствующее поле не меняется.
+// UpdateAdvertInput contains fields for partial advert update.
+// Any of them can be nil — in that case, the corresponding field is not changed.
 type UpdateAdvertInput struct {
 	Name        *string
 	Description *string
@@ -19,8 +19,8 @@ type UpdateAdvertInput struct {
 	Price       *float64
 }
 
-// AdvertSummary — то, что возвращается в списке.
-// Поля: ID, название, главная картинка (первый URL) и цена.
+// AdvertSummary represents the data returned in the advert list.
+// Fields: ID, name, main photo (first URL), and price.
 type AdvertSummary struct {
 	ID           int     `json:"id"`
 	Name         string  `json:"name"`
@@ -28,34 +28,34 @@ type AdvertSummary struct {
 	Price        float64 `json:"price"`
 }
 
-// AdvertDetail — полное представление одного объявления.
-// Включает AdvertSummary + описание + все ссылки на фото.
+// AdvertDetail represents a full advert view.
+// Includes AdvertSummary + description + all photo URLs.
 type AdvertDetail struct {
 	AdvertSummary
 	Description   string   `json:"description"`
 	AllPhotosURLs []string `json:"all_photos_urls"`
 }
 
-// AdvertService описывает бизнес-логику работы с объявлениями.
+// AdvertService describes the business logic for working with adverts.
 type AdvertService interface {
-	// Create создаёт новое объявление и возвращает его ID.
+	// Create creates a new advert and returns its ID.
 	Create(ctx context.Context, input CreateAdvertInput) (int, error)
 
-	// GetByID возвращает объявление по ID.
-	// Если fields == true, включает Description и AllPhotosURLs,
-	// иначе — только AdvertSummary.
+	// GetByID returns an advert by ID.
+	// If fields == true, includes Description and AllPhotosURLs,
+	// otherwise — only AdvertSummary.
 	GetByID(ctx context.Context, id int, fields bool) (AdvertDetail, error)
 
-	// List возвращает постраничный список объявлений.
-	// page — номер страницы (1-based),
-	// sortField — "price" или "date",
-	// sortOrder — "asc" или "desc".
+	// List returns a paginated list of adverts.
+	// page — page number (1-based),
+	// sortField — "price" or "date",
+	// sortOrder — "asc" or "desc".
 	List(ctx context.Context, page int, sortField, sortOrder string) ([]AdvertSummary, error)
 
-	// Update частично обновляет объявление по ID.
-	// Использует UpdateAdvertInput для определения изменяемых полей.
+	// Update partially updates an advert by ID.
+	// Uses UpdateAdvertInput to determine which fields to change.
 	Update(ctx context.Context, id int, input UpdateAdvertInput) error
 
-	// Delete удаляет объявление по ID.
+	// Delete deletes an advert by ID.
 	Delete(ctx context.Context, id int) error
 }

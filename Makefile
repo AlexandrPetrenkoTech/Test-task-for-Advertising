@@ -1,4 +1,6 @@
 # Makefile for Advertising Project
+include .env.test
+export
 
 # Name of the final binary
 BINARY_NAME=advertising
@@ -71,3 +73,8 @@ migrate-test-up: create-test-db
 
 migrate-test-down:
 	migrate -path migrations -database "$(TEST_DATABASE_DSN)" down
+
+e2e-test: migrate-test-up
+	@echo "==> Running E2E tests against $$TEST_DATABASE_DSN"
+	go test -tags=e2e -timeout 60s ./e2e_test.go
+	make migrate-test-down
