@@ -1,11 +1,11 @@
 package mocks
 
 import (
-	"Advertising/pkg/handler"
-	"Advertising/pkg/service"
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/handler"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/service"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

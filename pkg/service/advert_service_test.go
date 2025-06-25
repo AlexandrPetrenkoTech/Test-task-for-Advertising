@@ -1,10 +1,10 @@
 package service_test
 
 import (
-	"Advertising/pkg/model"
-	"Advertising/pkg/service"
 	"context"
 	"errors"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/model"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/service"
 	"testing"
 	"time"
 

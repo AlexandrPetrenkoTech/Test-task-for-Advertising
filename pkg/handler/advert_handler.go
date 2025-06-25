@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"Advertising/pkg/error_message"
-	"Advertising/pkg/service"
 	"errors"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/error_message"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/service"
 	"net/http"
 	"strconv"
 	"strings"
