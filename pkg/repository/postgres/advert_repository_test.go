@@ -1,8 +1,8 @@
 package postgres
 
 import (
-	"Advertising/pkg/model"
 	"fmt"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/model"
 	"github.com/DATA-DOG/go-sqlmock"
 	"regexp"
 	"testing"

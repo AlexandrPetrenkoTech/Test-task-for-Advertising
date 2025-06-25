@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"Advertising/pkg/model"
 	"context"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/model"
 )
 
 type AdvertRepo interface {

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"Advertising/pkg/service"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/service"
 	"github.com/labstack/echo/v4"
 )
 

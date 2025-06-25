@@ -1,11 +1,11 @@
 package service
 
 import (
-	"Advertising/pkg/error_message"
-	"Advertising/pkg/model"
-	"Advertising/pkg/repository"
 	"database/sql"
 	"fmt"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/error_message"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/model"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/repository"
 	"strings"
 
 	"context"

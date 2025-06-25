@@ -1,10 +1,10 @@
 package postgres
 
 import (
-	"Advertising/pkg/model"
-	"Advertising/pkg/repository"
 	"context"
 	"fmt"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/model"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/pkg/repository"
 	"github.com/jmoiron/sqlx"
 )
 

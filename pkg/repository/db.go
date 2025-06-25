@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"Advertising/configs"
 	"fmt"
+	"github.com/AlexandrPetrenkoTech/Test-task-for-Advertising/configs"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
