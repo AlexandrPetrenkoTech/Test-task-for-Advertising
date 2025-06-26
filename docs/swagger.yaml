@@ -1,4 +1,223 @@
+basePath: /api
+definitions:
+  handler.CreateAdvertRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      photos:
+        items:
+          type: string
+        type: array
+      price:
+        type: number
+    required:
+    - description
+    - name
+    - photos
+    - price
+    type: object
+  handler.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handler.GetAdvertResponse:
+    properties:
+      all_photos_urls:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      id:
+        type: integer
+      main_photo_url:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  handler.UpdateAdvertRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      photos:
+        items:
+          type: string
+        type: array
+      price:
+        type: number
+    type: object
+host: localhost:8080
 info:
   contact: {}
-paths: {}
+  description: A service for submitting and storing advertisements
+  title: Advertising API
+  version: "1.0"
+paths:
+  /adverts:
+    get:
+      consumes:
+      - application/json
+      description: Get list of adverts with optional pagination and sorting
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: size
+        type: integer
+      - description: Sort by field, e.g. price_asc
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handler.GetAdvertResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: List advertisements
+      tags:
+      - adverts
+    post:
+      consumes:
+      - application/json
+      description: Create advertisement with title, description, photos and price
+      parameters:
+      - description: Advertisement payload
+        in: body
+        name: advert
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CreateAdvertRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: New advert ID
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Create a new advertisement
+      tags:
+      - adverts
+  /adverts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete advertisement identified by its ID
+      parameters:
+      - description: Advert ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Delete an advertisement
+      tags:
+      - adverts
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single advert detail by its ID
+      parameters:
+      - description: Advert ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.GetAdvertResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Get an advertisement by ID
+      tags:
+      - adverts
+    put:
+      consumes:
+      - application/json
+      description: Update advertisement fields by ID
+      parameters:
+      - description: Advert ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Advertisement payload
+        in: body
+        name: advert
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateAdvertRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.GetAdvertResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Update an advertisement
+      tags:
+      - adverts
 swagger: "2.0"

@@ -19,7 +19,17 @@ type AdvertHandler struct {
 // NewAdvertHandler creates a new instance and registers routes in Echo.
 // It is assumed that e has already been initialized (echo.New()).
 
-// CreateAdvert handles POST /api/adverts
+// CreateAdvert
+// @Summary     Create a new advertisement
+// @Description Create advertisement with title, description, photos and price
+// @Tags        adverts
+// @Accept      json
+// @Produce     json
+// @Param       advert body     handler.CreateAdvertRequest true "Advertisement payload"
+// @Success     201    {object} map[string]int           "New advert ID"
+// @Failure     400    {object} handler.ErrorResponse
+// @Failure     500    {object} handler.ErrorResponse
+// @Router      /adverts [post]
 func (h *AdvertHandler) CreateAdvert(c echo.Context) error {
 	var req CreateAdvertRequest
 	if err := c.Bind(&req); err != nil {
@@ -53,7 +63,17 @@ func (h *AdvertHandler) CreateAdvert(c echo.Context) error {
 	return c.JSON(http.StatusCreated, map[string]int{"id": newID})
 }
 
-// GetAdvertByID handles GET /api/adverts/:id
+// GetAdvertByID godoc
+// @Summary     Get an advertisement by ID
+// @Description Retrieve a single advert detail by its ID
+// @Tags        adverts
+// @Accept      json
+// @Produce     json
+// @Param       id    path     int                     true "Advert ID"
+// @Success     200   {object} handler.GetAdvertResponse
+// @Failure     400   {object} handler.ErrorResponse
+// @Failure     404   {object} handler.ErrorResponse
+// @Router      /adverts/{id} [get]
 func (h *AdvertHandler) GetAdvertByID(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
@@ -91,7 +111,18 @@ func (h *AdvertHandler) GetAdvertByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-// ListAdverts handles GET /api/adverts?page=&sort=
+// ListAdverts godoc
+// @Summary     List advertisements
+// @Description Get list of adverts with optional pagination and sorting
+// @Tags        adverts
+// @Accept      json
+// @Produce     json
+// @Param       page  query    int                     false "Page number"
+// @Param       size  query    int                     false "Page size"
+// @Param       sort  query    string                  false "Sort by field, e.g. price_asc"
+// @Success     200   {array}  handler.GetAdvertResponse
+// @Failure     500   {object} handler.ErrorResponse
+// @Router      /adverts [get]
 func (h *AdvertHandler) ListAdverts(c echo.Context) error {
 	// 1) Parse page (default is 1)
 	pageParam := c.QueryParam("page")
@@ -129,7 +160,19 @@ func (h *AdvertHandler) ListAdverts(c echo.Context) error {
 	return c.JSON(http.StatusOK, listResp)
 }
 
-// UpdateAdvert handles PUT /api/adverts/:id
+// UpdateAdvert godoc
+// @Summary     Update an advertisement
+// @Description Update advertisement fields by ID
+// @Tags        adverts
+// @Accept      json
+// @Produce     json
+// @Param       id     path     int                     true "Advert ID"
+// @Param       advert body     handler.UpdateAdvertRequest true "Advertisement payload"
+// @Success     200    {object} handler.GetAdvertResponse
+// @Failure     400    {object} handler.ErrorResponse
+// @Failure     404    {object} handler.ErrorResponse
+// @Failure     500    {object} handler.ErrorResponse
+// @Router      /adverts/{id} [put]
 func (h *AdvertHandler) UpdateAdvert(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
@@ -161,7 +204,17 @@ func (h *AdvertHandler) UpdateAdvert(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// DeleteAdvert handles DELETE /api/adverts/:id
+// DeleteAdvert godoc
+// @Summary     Delete an advertisement
+// @Description Delete advertisement identified by its ID
+// @Tags        adverts
+// @Accept      json
+// @Produce     json
+// @Param       id path int true "Advert ID"
+// @Success     204 {string} string "No content"
+// @Failure     400 {object} handler.ErrorResponse
+// @Failure     404 {object} handler.ErrorResponse
+// @Router      /adverts/{id} [delete]
 func (h *AdvertHandler) DeleteAdvert(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
